@@ -18,16 +18,13 @@
 /* ---- systems ---------------------------------------------------------------
    sysOrder is the source of truth for lane order: outer-to-inner (ring)) and top-to-bottom (timeline).
 
-   `regulatory` was `cpucp` ("CPUC Proceedings") until the data generalised it.
-   It is the same lane — same position, same colour — under a name that is not
-   tied to one commission, so a milestone from another regulator has somewhere
-   to go. The key matches the `sys` value in events.json; nothing outside this
+  The key matches the `sys` value in events.json; nothing outside this
    block ever names a system literally.
    ---------------------------------------------------------------------------- */
 export const sysOrder = ['cedars', 'acc', 'pa', 'pg', 'etrm', 'deer', 'cns', 'regulatory'];
 
-/* pg was #E24A4A until the status rings arrived. That red sat ΔE00 14.2 from
-   the Delayed ring and read as a status rather than a system; #C74A1F keeps
+/* pg was #E24A4A until status colours were introduced. That red sat ΔE00
+   14.2 from the Delayed red and read as a status rather than a system; #C74A1F keeps
    white lane-label text at 4.74:1. */
 export const COL = {                       // swatch, lane label, marker fill
   etrm: '#5F9E3F', pa: '#556A77', deer: '#7C4DBC', pg: '#C74A1F',
@@ -55,23 +52,21 @@ export const SHORT = {                     // acronym — lane box and table
                        null                                null, absent or ""
                        'unknown'                           anything else
 
-   A known status draws a ring around the marker in both visuals and a
-   highlighted value in the record panel. Null draws no ring and an em dash.
-   Unknown draws no ring and the raw value in the panel's flagged-data red.
+   On both visuals a marker keeps its system colour and its SHAPE shows the
+   status (statusShape below). In the record panel and table a known status is
+   a highlighted label, null an em dash / blank cell, and an unknown value its
+   raw text in the flagged-data red.
 
-   ring  the marker ring and the legend swatch. SVG and inline styles cannot
-         read the stylesheet, so the colours live here; index.html repeats
-         them for the timeline's box-shadow rings and must be kept in step.
-   bg / edge  the record-panel highlight. Delayed is the existing
+   bg / edge  the record-panel and table highlight. Delayed is the existing
          .dt-dep-conflict pair; Complete and At risk keep its lightness and
          raise the chroma so the hue reads.
    ---------------------------------------------------------------------------- */
 export const statusOrder = ['complete', 'delayed', 'atrisk'];
 
 export const STATUS = {
-  complete: { label: 'Complete', ring: '#29B401', bg: '#D9F8DC', edge: '#AAE4B1' },
-  delayed:  { label: 'Delayed',  ring: '#FE0002', bg: '#fdeceb', edge: '#f3cdc9' },
-  atrisk:   { label: 'At risk',  ring: '#E8D000', bg: '#FEF0BE', edge: '#EAD67E' }
+  complete: { label: 'Complete', bg: '#D9F8DC', edge: '#AAE4B1' },
+  delayed:  { label: 'Delayed',  bg: '#fdeceb', edge: '#f3cdc9' },
+  atrisk:   { label: 'At risk',  bg: '#FEF0BE', edge: '#EAD67E' }
 };
 
 const STATUS_BY_TEXT = Object.fromEntries(
@@ -82,6 +77,53 @@ export function statusKey(e) {
   if (v === null || v === undefined || v === '') return null;
   if (typeof v !== 'string') return 'unknown';
   return STATUS_BY_TEXT[v.toLowerCase()] || 'unknown';
+}
+
+/* ---- status shapes ---------------------------------------------------------
+     circle    Complete
+     x         Delayed
+     triangle  At risk
+     square    no status, and any unrecognised value
+
+   shapeSVG() draws one shape centred on 0,0, fitting a box of half-size R
+   that includes its stroke (the white edge that separates a marker from its
+   neighbours). The timeline and the donut both call it, so the geometry is
+   identical everywhere; only R and the stroke differ. Proportions are visual,
+   not literal: a square the full width of the box reads heavier than the
+   circle, so it is drawn at 85%, and the triangle is nudged down so its mass
+   sits on the marker's centre.
+
+   noStroke draws the shape alone, for the legend key. */
+export const NONE_LABEL = 'No status';
+
+/* keyed by statusKey(); 'none' covers null and unknown */
+export const STATUS_SHAPE = { complete: 'circle', delayed: 'x', atrisk: 'triangle', none: 'square' };
+
+export function statusShape(e) {
+  return STATUS_SHAPE[statusKey(e)] || STATUS_SHAPE.none;
+}
+
+const f = n => +n.toFixed(2);
+
+export function shapeSVG(shape, R, sw, fill, noStroke = false) {
+  const h = R - sw / 2;                          // fill extent inside the stroke
+  const paint = noStroke
+    ? `fill="${fill}"`
+    : `fill="${fill}" stroke="#fff" stroke-width="${sw}" stroke-linejoin="round"`;
+  if (shape === 'circle') return `<circle r="${f(h)}" ${paint}/>`;
+  if (shape === 'square') {
+    const k = h * 0.85;
+    return `<rect x="${f(-k)}" y="${f(-k)}" width="${f(2 * k)}" height="${f(2 * k)}" ${paint}/>`;
+  }
+  if (shape === 'triangle') {
+    const top = -1.06 * h, base = 0.74 * h, half = 1.02 * h;
+    return `<polygon points="0,${f(top)} ${f(half)},${f(base)} ${f(-half)},${f(base)}" ${paint}/>`;
+  }
+  /* x: a cross of two bars, arm tip at L along each diagonal, bar half-width w */
+  const L = h * 0.95, w = h * 0.4;
+  const pts = [[w, 0], [L, L - w], [L - w, L], [0, w], [w - L, L], [-L, L - w],
+               [-w, 0], [-L, w - L], [w - L, -L], [0, -w], [L - w, -L], [L, w - L]];
+  return `<polygon points="${pts.map(([x, y]) => `${f(x)},${f(y)}`).join(' ')}" ${paint}/>`;
 }
 
 /* per-lane type-size override where the abbreviation still runs long.

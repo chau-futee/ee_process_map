@@ -33,7 +33,6 @@
     font-weight:500;line-height:20px}
   .legend .lg-lbl{color:var(--muted)}
   .dot{width:12px;height:12px;border-radius:3px;display:inline-block}
-  .legend .ring{width:8px;height:8px;border-radius:50%;border:2.5px solid;display:inline-block}
   .winbar{display:inline-flex;flex-wrap:wrap;gap:8px;align-items:center}
   .winbar .winlbl{display:inline-flex;align-items:center;justify-content:center;
     padding:0 12px;min-width:88px;font-size:12.5px;font-weight:700;color:var(--ink)}
@@ -86,8 +85,14 @@
   .track.empty{height:52px;display:flex;align-items:center;justify-content:center}
   .track.empty span{font-size:12px;color:var(--muted);font-style:italic}
   .milestone{position:absolute;top:26px;transform:translate(-50%,-50%);cursor:pointer;--off:0px;--dx:0px}
-  .milestone .m-dot{width:13px;height:13px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25)}
-  .milestone.nudged .m-dot{border-style:solid;box-shadow:0 1px 3px rgba(0,0,0,.25),0 0 0 3px rgba(31,39,51,.10)}
+  /* The marker is a round 13px box holding its status shape (timeline.js). The
+     shape carries the system colour and the 2px white edge; the box stays
+     round so the selection / chain-root box-shadows draw as circles. The drop
+     shadow sits on the shape so it follows the shape's outline. */
+  .milestone .m-dot{width:13px;height:13px;border-radius:50%;position:relative}
+  .milestone .m-dot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;
+    filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.25))}
+  .milestone.nudged .m-dot{box-shadow:0 0 0 3px rgba(31,39,51,.10)}
   .milestone .m-lbl{position:absolute;left:calc(50% + var(--dx));transform:translateX(-50%);
     top:calc(14px + var(--off));white-space:normal;
     font-size:10px;color:#42506b;font-weight:600;text-align:center;width:78px;line-height:1.2}
@@ -98,21 +103,6 @@
      the reveal-all toggle; it is simply not painted. */
   .milestone[data-s="0"] .m-lbl{display:none}
   #lanes.showall .milestone[data-s="0"] .m-lbl{display:block;opacity:.62}
-  .milestone[data-s="0"] .m-dot{width:9px;height:9px;border-width:1.5px}
-  /* STATUS RINGS on the timeline. data-st is written by timeline.js for a
-     known status only. The dot's own 2px white border is the gap; the status
-     ring sits outside it, 1.5px (1px on a crowded marker). Colours must match
-     STATUS in config.js. Declared before .chain-root and .sel, which repeat
-     the status ring as their first layer: the selection / root ring stays at
-     3px gap + 2px ink whether or not there is a status, and the status ring
-     shows inside that gap. With no status, --st is unset and that first layer
-     falls back to transparent. */
-  .milestone{--stw:1.5px}
-  .milestone[data-s="0"]{--stw:1px}
-  .milestone[data-st="complete"]{--st:#29B401}
-  .milestone[data-st="delayed"]{--st:#FE0002}
-  .milestone[data-st="atrisk"]{--st:#E8D000}
-  .milestone[data-st] .m-dot{box-shadow:0 0 0 var(--stw) var(--st),0 1px 3px rgba(0,0,0,.25)}
   /* ---- month grid overlay -------------------------------------------
      One overlay for all lanes (36 elements) rather than 36 per track.
      Sits in the flow before the rows, so absolutely-positioned markers
@@ -199,11 +189,9 @@
   .dt-chainmode button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(20,30,50,.12)}
   .dt-chainmode button:focus-visible{outline:2px solid #b9c6da;outline-offset:1px}
   /* The record the chain was opened from, distinguished from the rest of it. */
-  .milestone.chain-root .m-dot{box-shadow:0 0 0 var(--stw) var(--st,transparent),
-    0 0 0 3px var(--card),0 0 0 5px var(--ink)}
+  .milestone.chain-root .m-dot{box-shadow:0 0 0 3px var(--card),0 0 0 5px var(--ink)}
   /* The milestone holding something up carries .chain-late but no ring of
-     its own: the red line and chevron say which way the lateness runs, and a
-     dot's border is reserved for its status and for selection / chain root. */
+     its own: the red line and chevron say which way the lateness runs. */
   .milestone.chain-root .m-lbl{color:var(--ink);font-weight:700}
   .dim{opacity:.16}
   .glow{filter:drop-shadow(0 0 5px rgba(31,39,51,.5))}
@@ -431,8 +419,7 @@
   .dt-deps li{margin:0;font-size:12.5px;line-height:1.4;color:#42506b}
 
   /* the chosen marker, in both views */
-  .milestone.sel .m-dot{box-shadow:0 0 0 var(--stw) var(--st,transparent),
-    0 0 0 3px var(--card),0 0 0 5px var(--ink)}
+  .milestone.sel .m-dot{box-shadow:0 0 0 3px var(--card),0 0 0 5px var(--ink)}
   .milestone.sel .m-lbl{color:var(--ink);font-weight:700}
 
   /* Donut markers are <g class="rk"> groups drawn by donut.js; the selection

@@ -416,7 +416,7 @@ export function refLinkHTML(e) {
               a light highlight of the status colour — .dt-st-<key>
      unknown  the raw value as written, in the flagged-data red used for
               dependency values that name nothing (.dt-st-bad shares that rule
-              with .dt-dep-bad). The marker draws no ring for it.
+              with .dt-dep-bad). Its marker is the no-status square.
      null     an empty string; each caller decides how empty reads — the panel
               prints an em dash like every other empty fact, the table leaves
               the cell blank like an empty Type or Frequency. */

@@ -60,15 +60,10 @@ let raf = 0, sig = '';
 
 const HOPS = { direct: 1, full: Infinity };
 
-/* Box-shadow rings extend past the measured dot and would otherwise swallow a
-   chevron placed against its edge. Values match index.html.
-
-     status ring     1.5px, or 1px on a crowded marker (data-s="0")
-     chain root      a 3px gap then a 2px ink ring = 5px, with or without a
-                     status (a status ring sits inside the gap) */
+/* The chain root wears box-shadow rings (.milestone.chain-root .m-dot), a 3px
+   card gap then a 2px ink ring, which extend 5px past the measured dot and
+   would otherwise swallow a chevron placed against its edge. */
 const ROOT_RING = 5;
-const STATUS_RING = 1.5;
-const STATUS_RING_SMALL = 1;
 /* Clear air between the dot and the point of the chevron. */
 const HEAD_GAP = 5;
 /* How long the chevron's own segment is. It only exists to orient the marker,
@@ -154,14 +149,12 @@ function dotCentre(e, base) {
   const el = m.querySelector('.m-dot') || m;
   const r = el.getBoundingClientRect();
   if (!r.height) return null;              // laid out but not showing
-  /* The radius matters as much as the centre: there are three dot sizes on the
-     lanes — 17px normally, 12px for a crowded marker (data-s="0"), plus
-     the status ring and the chain root's rings, which are box-shadows and so
-     do not appear in the measured box. Measuring rather than assuming keeps the chevron
-     clear of whichever one it is approaching. */
-  const ring = m.classList.contains('chain-root') ? ROOT_RING
-    : m.dataset.st ? (m.dataset.s === '0' ? STATUS_RING_SMALL : STATUS_RING)
-    : 0;
+  /* The radius matters as much as the centre. Every marker is a 13px box
+     (box-sizing: border-box, so its white edge is inside the 13px), and the
+     chain root adds rings that are box-shadows and so do not appear in the
+     measured box. Measuring rather than assuming keeps the chevron clear of
+     whichever marker it is approaching. */
+  const ring = m.classList.contains('chain-root') ? ROOT_RING : 0;
   return {
     x: r.left - base.left + r.width / 2,
     y: r.top - base.top + r.height / 2,

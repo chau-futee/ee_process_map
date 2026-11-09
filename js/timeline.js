@@ -14,7 +14,7 @@
 import {
   sysOrder, COL, NAME, SHORT, LBL_FS, months,
   spanMonths, windowYears, windowLabel, absMonthIn, monthLabelIn, hasData, esc,
-  eventName, sysLink, statusKey
+  eventName, sysLink, statusKey, statusShape, shapeSVG
 } from './config.js';
 import { showTip, hideTip } from './ui.js';
 import { openDetail } from './detail.js';
@@ -114,15 +114,19 @@ export function drawTimeline(events, all, win) {
          still surfaces it in the DOM. */
       if (ev.id) m.dataset.id = ev.id;
       m.dataset.s = (ev.show === 0 ? '0' : '1');
-      /* The status ring is a box-shadow drawn by the stylesheet off data-st.
-         Only a known status is written; null and unknown values draw no ring
-         (the record panel is where an unknown value is called out). */
+      /* The marker's shape shows its status (statusShape in config.js);
+         data-st records the known status for anything that wants to read it.
+         Null and unknown values are both drawn as the square. */
       const st = statusKey(ev);
       if (st && st !== 'unknown') m.dataset.st = st;
       /* _k is assigned once by initDetail() and never changes, so a click resolves to one record. */
       m.dataset.k = ev._k;
       const name = eventName(ev);
-      m.innerHTML = `<div class="m-dot" style="background:${COL[sys]}"></div>`
+      /* Every marker is the same 13px box whether or not its label shows; the
+         shape inside fills it, white edge included. The box stays round so
+         the selection and chain-root rings (box-shadows) stay circular. */
+      m.innerHTML = `<div class="m-dot"><svg viewBox="-6.5 -6.5 13 13" aria-hidden="true" focusable="false">`
+                  + `${shapeSVG(statusShape(ev), 6.5, 2, COL[sys])}</svg></div>`
                   + `<div class="m-lbl">${esc(name)}</div>`;
 
       const html = () => `<b>${esc(NAME[sys])}</b>${esc(name)}`

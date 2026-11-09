@@ -13,22 +13,30 @@
 
    Systems come from sysOrder (order) + COL (swatch) + NAME (text), so adding a
    system to sysOrder in config.js adds it here automatically. Statuses come
-   from statusOrder + STATUS the same way. Null and unknown statuses draw no
-   ring anywhere, so they have no key entry.
+   from statusOrder + STATUS, plus "No status" for the square that null and
+   unrecognised values share. The status key is drawn in neutral grey: on the
+   markers colour means system, and only the shape means status.
 
    Every system reads the same: one solid swatch, full strength. The legend is a
    key to the colours, not a data-availability indicator — an empty lane says so
    in the lane itself, and on the ring, which is where the reader is looking.
    ============================================================================= */
 
-import { sysOrder, COL, NAME, esc, statusOrder, STATUS } from './config.js';
+import {
+  sysOrder, COL, NAME, esc, statusOrder, STATUS, STATUS_SHAPE, shapeSVG, NONE_LABEL
+} from './config.js';
+
+const KEY_GREY = '#8a94a8';
+const keySwatch = k =>
+  `<svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true" focusable="false">`
+  + `${shapeSVG(STATUS_SHAPE[k], 6, 0, KEY_GREY, true)}</svg>`;
 
 export function drawLegend() {
   const systems = sysOrder.map(sys =>
     `<span><i class="dot" style="background:${COL[sys]}"></i>${esc(NAME[sys])}</span>`
   ).join('');
-  const statuses = statusOrder.map(k =>
-    `<span><i class="ring" style="border-color:${STATUS[k].ring}"></i>${esc(STATUS[k].label)}</span>`
+  const statuses = [...statusOrder, 'none'].map(k =>
+    `<span>${keySwatch(k)}${esc(k === 'none' ? NONE_LABEL : STATUS[k].label)}</span>`
   ).join('');
   document.getElementById('legend').innerHTML =
       `<span class="lg-lbl">System</span><div class="lg-items">${systems}</div>`

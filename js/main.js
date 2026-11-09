@@ -160,7 +160,7 @@ async function start() {
     const { events, meta } = await loadEvents();
     ALL = validate(events);
 
-    /* A status the page does not recognise is drawn with no ring and shown in
+    /* A status the page does not recognise is drawn as the no-status square and shown in
        red in the record panel. Listed here as well so a misspelling in the
        workbook is visible on load, not only when someone opens that record. */
     const oddStatus = ALL.filter(e => statusKey(e) === 'unknown');
