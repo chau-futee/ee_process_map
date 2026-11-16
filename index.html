@@ -209,6 +209,14 @@
   .note.placeholder{border-style:dashed;background:#fcfcfa;border-color:#d8ddE6}
   .note.placeholder ul{margin-top:8px}
   .note.placeholder li{color:var(--muted)}
+  /* Data-ownership note and FUTEE logo at the foot of the Home card. Text left,
+     logo bottom-right; on a narrow screen they stack and the logo stays right. */
+  .homefoot{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;
+    gap:14px 24px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+  .homefoot p{margin:0;font-size:13px;color:var(--muted);max-width:560px}
+  .homefoot a{color:var(--ink)}
+  .homefoot a:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:3px}
+  .homefoot img{display:block;height:48px;width:auto;margin-left:auto}
 
   /* ---- per-view description boxes ----------------------------------- */
   .note.viewnote{margin-bottom:0}
@@ -487,11 +495,17 @@
         <ul>
           <li><b>Data current as of:</b> <span id="dataAsOf">TBC</span></li>
           <li><b>Source of the milestone dates:</b> TBC</li>
-          <li><b>Owner / who to contact about a wrong date:</b> TBC</li>
           <li><b>Update cadence:</b> TBC</li>
           <li><b>Where this is hosted:</b> TBC</li>
         </ul>
       </div>
+
+      <!-- DATA OWNERSHIP + LOGO. Logo file: img/futee-logo.png (folder next to js/ and data/).
+           If the file is missing, onerror removes the image instead of showing a broken icon. -->
+      <footer class="homefoot">
+        <p>Milestone dates and data are maintained by Future Energy Enterprises. Please send any additions, corrections, or updates to <a href="mailto:caltf@futee.biz">caltf@futee.biz</a>.</p>
+        <img src="img/futee-logo.png" alt="Future Energy Enterprises logo" onerror="this.remove()">
+      </footer>
     </div>
   </div>
 
