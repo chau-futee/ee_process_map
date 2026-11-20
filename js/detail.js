@@ -133,7 +133,7 @@ function routeClick(btn) {
    could just as easily emit the number. */
 const part = v => String(v == null ? '' : v).trim().replace(/\s+/g, ' ').toLowerCase();
 
-const key = (sys, py, event) => `${part(sys)}|${part(py)}|${part(event)}`;
+export const key = (sys, py, event) => `${part(sys)}|${part(py)}|${part(event)}`;
 
 const evKey = e => key(e.sys, e.py, e.event);
 

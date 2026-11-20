@@ -22,6 +22,7 @@ import {
   absMonth, monthLabel, esc, eventName, STATUS, statusOrder, statusKey
 } from './config.js';
 import { detailPanelHTML, refLinkHTML, statusLabelHTML } from './detail.js';
+import { downloadXlsx } from './export.js';
 
 /* Sentinel for the "not set" option. Must survive being written into an HTML
    attribute — a U+0000 does not; the parser rewrites it and the option then
@@ -42,9 +43,10 @@ const statusVal = e => {
   return k === null ? NOTSET : k === 'unknown' ? RAW + String(e.status) : k;
 };
 
-export function drawTable(events) {
+export function drawTable(events, history = []) {
   const rows = [...events].sort((a, b) => absMonth(a) - absMonth(b));
   const open = new Set();          // _k of every expanded row
+  let shown = rows;                // what render() last put on screen; the download writes this
 
   /* ---- filter controls ---- */
   const sysWithData = sysOrder.filter(s => events.some(e => e.sys === s));
@@ -67,7 +69,8 @@ export function drawTable(events) {
    + `<label class="grow">Milestone
         <input id="fText" type="search" placeholder="search milestone text…" autocomplete="off">
       </label>`
-   + `<button type="button" id="fClear" class="clearbtn">Clear</button>`;
+   + `<button type="button" id="fClear" class="clearbtn">Clear</button>`
+   + `<button type="button" id="fDownload" class="clearbtn">Download .xlsx</button>`;
 
   const fSys  = document.getElementById('fSys'),
         fFrom = document.getElementById('fFrom'),
@@ -77,6 +80,7 @@ export function drawTable(events) {
         fType = document.getElementById('fType'),
         fStat = document.getElementById('fStat'),
         fClear = document.getElementById('fClear'),
+        fDownload = document.getElementById('fDownload'),
         table  = document.getElementById('dataTable');
 
   /* ---- From / To month calendars ---------------------------------------------
@@ -282,7 +286,7 @@ export function drawTable(events) {
   function render() {
     const f = currentFilters();
     refreshOptions(f);
-    const shown = rows.filter(e => passes(e, f, null));
+    shown = rows.filter(e => passes(e, f, null));
 
     table.innerHTML =
       `<thead><tr>
@@ -302,10 +306,15 @@ export function drawTable(events) {
         + `latest ${monthLabel(absMonth(rows[rows.length - 1]))}, `
         + `within a window of ${months[0]} ${year[0]} – ${months[11]} ${year[year.length - 1]}.`;
     fClear.disabled = !filtered && !fText.value;
+    fDownload.disabled = !shown.length;
+    fDownload.title = shown.length
+      ? `Download the ${shown.length} rows showing, with their date history`
+      : 'No rows match these filters, so there is nothing to download';
   }
 
   [fSys, fType, fFreq, fStat].forEach(el => el.addEventListener('change', render));
   fText.addEventListener('input', render);
+  fDownload.addEventListener('click', () => downloadXlsx(shown, rows, history));
   fClear.addEventListener('click', () => {
     fSys.value = ''; fType.value = ''; range[0] = 0; range[1] = SPAN - 1;
     closeCal(false); paintPickers();

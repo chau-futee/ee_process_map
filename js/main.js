@@ -172,7 +172,8 @@ async function start() {
 
     /* Before any view draws: initDetail() stamps every event with its stable
        _k, and the two visuals write that into data-k as they render. */
-    initDetail(ALL, await loadHistory());
+    const history = await loadHistory();
+    initDetail(ALL, history);
 
     /* The dependency graph is built once, from the full range rather than the
        window, because a chain routinely reaches a record the window does not
@@ -203,7 +204,7 @@ async function start() {
     initChainView();
     onWindowChange(renderWindow);
 
-    drawTable(ALL);        // full range, drawn once
+    drawTable(ALL, history);   // full range, drawn once; history feeds the download
     renderWindow();        // window-dependent views
     stampMeta(meta);
   } catch (err) {
